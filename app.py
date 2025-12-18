@@ -16,7 +16,7 @@ st.caption("Learn smart spending, saving & decision-making")
 # -------------------------------
 # Hugging Face AI Setup
 # -------------------------------
-API_URL = "https://router.huggingface.co/v1/chat/completions"
+API_URL = "https://router.huggingface.co/featherless-ai/v1/completions"
 headers = {
     "Authorization": f"Bearer {st.secrets['HF_TOKEN']}",
 }
@@ -27,7 +27,7 @@ def query_ai(messages):
             API_URL,
             headers=headers,
             json={
-                "model": "meta-llama/Llama-3.1-8B-Instruct:fireworks-ai",
+                "model": "meta-llama/Meta-Llama-3-8B",
                 "messages": messages,
             },
             timeout=30
