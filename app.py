@@ -4,10 +4,7 @@ import requests
 # ---------------------------------
 # Page Config
 # ---------------------------------
-st.set_page_config(
-    page_title="SmartPocket 💰",
-    layout="centered"
-)
+st.set_page_config(page_title="SmartPocket 💰", layout="centered")
 
 st.title("💰 SmartPocket")
 st.caption("Learn smart spending & saving with AI guidance")
@@ -19,8 +16,9 @@ API_URL = "https://router.huggingface.co/featherless-ai/v1/completions"
 
 headers = {
     "Authorization": f"Bearer {st.secrets['HF_TOKEN']}",
-    "Content-Type": "application/json"
+    "Content-Type": "application/json",
 }
+
 
 def query_ai(prompt):
     try:
@@ -29,12 +27,21 @@ def query_ai(prompt):
             headers=headers,
             json={
                 "model": "meta-llama/Llama-3.1-8B-Instruct",
-                "prompt": prompt,          # ✅ REQUIRED FIELD
-                "max_tokens": 300,
-                "temperature": 0.7,
-                "top_p": 0.9,
+                "prompt": prompt,
+                "max_tokens": 80,  # 🔑 HARD LIMIT
+                "temperature": 0.4,  # 🔑 Less creativity
+                "top_p": 0.8,
+                "stop": [
+                    "\n\n",
+                    "You're",
+                    "You are",
+                    "Keep",
+                    "I'm so",
+                    "What do you",
+                    "Do you want",
+                ],
             },
-            timeout=30
+            timeout=30,
         )
 
         data = response.json()
@@ -66,17 +73,9 @@ if "chat_history" not in st.session_state:
 if not st.session_state.initialized:
     st.header("👨‍👩‍👧 Parent Budget Setup")
 
-    total_budget = st.number_input(
-        "Total Budget (₹)",
-        min_value=1,
-        step=10
-    )
+    total_budget = st.number_input("Total Budget (₹)", min_value=1, step=10)
 
-    total_days = st.number_input(
-        "Number of Days",
-        min_value=1,
-        step=1
-    )
+    total_days = st.number_input("Number of Days", min_value=1, step=1)
 
     if st.button("Start Budget"):
         st.session_state.total_budget = float(total_budget)
@@ -105,15 +104,10 @@ else:
     # ---------------------------------
     st.subheader("🛒 Log Today's Expense")
 
-    expense = st.number_input(
-        "Expense Amount (₹)",
-        min_value=0.0,
-        step=1.0
-    )
+    expense = st.number_input("Expense Amount (₹)", min_value=0.0, step=1.0)
 
     description = st.text_input(
-        "Expense Description",
-        placeholder="Snacks, toy, game, etc."
+        "Expense Description", placeholder="Snacks, toy, game, etc."
     )
 
     if st.button("Add Expense"):
@@ -125,8 +119,7 @@ else:
 
             if st.session_state.remaining_days > 0:
                 st.session_state.daily_allowance = (
-                    st.session_state.remaining_budget
-                    / st.session_state.remaining_days
+                    st.session_state.remaining_budget / st.session_state.remaining_days
                 )
             else:
                 st.session_state.daily_allowance = 0
@@ -148,38 +141,32 @@ else:
     user_input = st.chat_input("Ask me before spending...")
 
     if user_input:
-        st.session_state.chat_history.append({
-            "role": "user",
-            "content": user_input
-        })
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
 
         with st.chat_message("user"):
             st.markdown(user_input)
 
         prompt = (
-    "You are a friendly money guide talking to a child.\n\n"
-    "STRICT RULES (must follow):\n"
-    "- Speak ONLY to the child\n"
-    "- DO NOT explain your response\n"
-    "- DO NOT add hashtags\n"
-    "- DO NOT add analysis or commentary\n"
-    "- DO NOT mention budgeting theory\n"
-    "- Keep the reply under 6 sentences\n"
-    "- Use simple, kind, encouraging language\n\n"
-    f"Current situation:\n"
-    f"- Remaining budget: ₹{st.session_state.remaining_budget:.2f}\n"
-    f"- Remaining days: {st.session_state.remaining_days}\n"
-    f"- Daily allowance: ₹{st.session_state.daily_allowance:.2f}\n\n"
-    f"Child says:\n{user_input}\n\n"
-    "Reply directly to the child:"
-)
+            "You are a friendly money guide talking to a child.\n\n"
+            "STRICT RULES (must follow):\n"
+            "- Reply in AT MOST 3 short sentences\n"
+            "- Give ONE clear suggestion only\n"
+            "- DO NOT repeat yourself\n"
+            "- DO NOT overpraise\n"
+            "- DO NOT ask more than one question\n"
+            "- DO NOT explain your reasoning\n"
+            "- DO NOT add emojis, hashtags, or commentary\n\n"
+            f"Current situation:\n"
+            f"- Remaining budget: ₹{st.session_state.remaining_budget:.2f}\n"
+            f"- Remaining days: {st.session_state.remaining_days}\n"
+            f"- Daily allowance: ₹{st.session_state.daily_allowance:.2f}\n\n"
+            f"Child says:\n{user_input}\n\n"
+            "Reply directly to the child:"
+        )
 
         ai_reply = query_ai(prompt)
 
-        st.session_state.chat_history.append({
-            "role": "assistant",
-            "content": ai_reply
-        })
+        st.session_state.chat_history.append({"role": "assistant", "content": ai_reply})
 
         with st.chat_message("assistant"):
             st.markdown(ai_reply)
