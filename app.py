@@ -1,75 +1,76 @@
 import streamlit as st
 import requests
-import os
 
-# -------------------------------
+# ---------------------------------
 # Page Config
-# -------------------------------
+# ---------------------------------
 st.set_page_config(
     page_title="SmartPocket 💰",
     layout="centered"
 )
 
 st.title("💰 SmartPocket")
-st.caption("Learn smart spending, saving & decision-making")
+st.caption("Learn smart spending & saving with AI guidance")
 
-# -------------------------------
-# Hugging Face AI Setup
-# -------------------------------
+# ---------------------------------
+# Featherless AI Setup
+# ---------------------------------
 API_URL = "https://router.huggingface.co/featherless-ai/v1/completions"
+
 headers = {
     "Authorization": f"Bearer {st.secrets['HF_TOKEN']}",
+    "Content-Type": "application/json"
 }
 
-def query_ai(messages):
+def query_ai(prompt):
     try:
         response = requests.post(
             API_URL,
             headers=headers,
             json={
-                "model": "meta-llama/Meta-Llama-3-8B",
-                "messages": messages,
+                "model": "meta-llama/Llama-3.1-8B-Instruct",
+                "inputs": prompt,
+                "max_tokens": 300,
+                "temperature": 0.7,
             },
             timeout=30
         )
 
         data = response.json()
 
-        # ✅ SAFETY CHECK
         if "choices" in data:
-            return data["choices"][0]["message"]["content"]
+            return data["choices"][0]["text"].strip()
         elif "error" in data:
-            return f"⚠️ AI Error: {data['error'].get('message', 'Unknown error')}"
+            return f"⚠️ AI Error: {data['error']}"
         else:
-            return "⚠️ AI returned an unexpected response."
+            return "⚠️ Unexpected AI response."
 
     except Exception as e:
-        return f"⚠️ Failed to contact AI service: {str(e)}"
+        return f"⚠️ AI connection failed: {str(e)}"
 
-
-# -------------------------------
+# ---------------------------------
 # Session State Initialization
-# -------------------------------
+# ---------------------------------
 if "initialized" not in st.session_state:
     st.session_state.initialized = False
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# -------------------------------
+# ---------------------------------
 # Parent Budget Setup
-# -------------------------------
+# ---------------------------------
 if not st.session_state.initialized:
-    st.header("👨‍👩‍👧 Parent Setup")
+    st.header("👨‍👩‍👧 Parent Budget Setup")
 
     total_budget = st.number_input(
-        "Enter Total Budget (₹)",
+        "Total Budget (₹)",
         min_value=1,
         step=10
     )
 
     total_days = st.number_input(
-        "Enter Number of Days",
+        "Number of Days",
         min_value=1,
         step=1
     )
@@ -83,9 +84,9 @@ if not st.session_state.initialized:
         st.session_state.initialized = True
         st.rerun()
 
-# -------------------------------
+# ---------------------------------
 # Main App (Child View)
-# -------------------------------
+# ---------------------------------
 else:
     st.header("📊 Budget Dashboard")
 
@@ -96,9 +97,9 @@ else:
 
     st.divider()
 
-    # -------------------------------
+    # ---------------------------------
     # Expense Entry
-    # -------------------------------
+    # ---------------------------------
     st.subheader("🛒 Log Today's Expense")
 
     expense = st.number_input(
@@ -132,9 +133,9 @@ else:
 
     st.divider()
 
-    # -------------------------------
+    # ---------------------------------
     # AI Chatbot
-    # -------------------------------
+    # ---------------------------------
     st.subheader("🤖 Smart Spending Assistant")
 
     for msg in st.session_state.chat_history:
@@ -152,39 +153,41 @@ else:
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        context = f"""
-        You are a friendly financial assistant for a child.
+        prompt = f"""
+You are a friendly financial assistant for a child.
 
-        Current budget details:
-        - Remaining Budget: ₹{st.session_state.remaining_budget:.2f}
-        - Remaining Days: {st.session_state.remaining_days}
-        - Daily Allowance: ₹{st.session_state.daily_allowance:.2f}
+Rules:
+- Use simple and kind language
+- Encourage balance (not overspending or oversaving)
+- Suggest saving plans when needed
+- Explain consequences gently
 
-        Your job:
-        - Help the child decide wisely
-        - Encourage balance (not overspending, not oversaving)
-        - Suggest saving plans for big purchases
-        - Use simple, kind language
-        """
+Current budget:
+Remaining budget: ₹{st.session_state.remaining_budget:.2f}
+Remaining days: {st.session_state.remaining_days}
+Daily allowance: ₹{st.session_state.daily_allowance:.2f}
 
-        ai_response = query_ai([
-            {"role": "system", "content": context},
-            {"role": "user", "content": user_input}
-        ])
+Child's question:
+{user_input}
+
+Give helpful advice:
+"""
+
+        ai_reply = query_ai(prompt)
 
         st.session_state.chat_history.append({
             "role": "assistant",
-            "content": ai_response
+            "content": ai_reply
         })
 
         with st.chat_message("assistant"):
-            st.markdown(ai_response)
+            st.markdown(ai_reply)
 
     st.divider()
 
-    # -------------------------------
-    # Reset Button
-    # -------------------------------
+    # ---------------------------------
+    # Reset
+    # ---------------------------------
     if st.button("🔄 Reset Budget"):
         st.session_state.clear()
         st.rerun()
