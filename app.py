@@ -22,16 +22,30 @@ headers = {
 }
 
 def query_ai(messages):
-    response = requests.post(
-        API_URL,
-        headers=headers,
-        json={
-            "model": "meta-llama/Llama-3.1-8B-Instruct:fireworks-ai",
-            "messages": messages,
-        },
-        timeout=30
-    )
-    return response.json()["choices"][0]["message"]["content"]
+    try:
+        response = requests.post(
+            API_URL,
+            headers=headers,
+            json={
+                "model": "meta-llama/Llama-3.1-8B-Instruct:fireworks-ai",
+                "messages": messages,
+            },
+            timeout=30
+        )
+
+        data = response.json()
+
+        # ✅ SAFETY CHECK
+        if "choices" in data:
+            return data["choices"][0]["message"]["content"]
+        elif "error" in data:
+            return f"⚠️ AI Error: {data['error'].get('message', 'Unknown error')}"
+        else:
+            return "⚠️ AI returned an unexpected response."
+
+    except Exception as e:
+        return f"⚠️ Failed to contact AI service: {str(e)}"
+
 
 # -------------------------------
 # Session State Initialization
