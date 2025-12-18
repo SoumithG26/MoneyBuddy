@@ -156,25 +156,23 @@ else:
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        prompt = f"""
-You are a friendly financial assistant for a child.
-
-Rules:
-- Use simple and kind language
-- Encourage balance (not overspending or oversaving)
-- Suggest saving plans when needed
-- Explain consequences gently
-
-Current budget:
-Remaining budget: ₹{st.session_state.remaining_budget:.2f}
-Remaining days: {st.session_state.remaining_days}
-Daily allowance: ₹{st.session_state.daily_allowance:.2f}
-
-Child's question:
-{user_input}
-
-Give helpful advice:
-"""
+        prompt = (
+    "You are a friendly money guide talking to a child.\n\n"
+    "STRICT RULES (must follow):\n"
+    "- Speak ONLY to the child\n"
+    "- DO NOT explain your response\n"
+    "- DO NOT add hashtags\n"
+    "- DO NOT add analysis or commentary\n"
+    "- DO NOT mention budgeting theory\n"
+    "- Keep the reply under 6 sentences\n"
+    "- Use simple, kind, encouraging language\n\n"
+    f"Current situation:\n"
+    f"- Remaining budget: ₹{st.session_state.remaining_budget:.2f}\n"
+    f"- Remaining days: {st.session_state.remaining_days}\n"
+    f"- Daily allowance: ₹{st.session_state.daily_allowance:.2f}\n\n"
+    f"Child says:\n{user_input}\n\n"
+    "Reply directly to the child:"
+)
 
         ai_reply = query_ai(prompt)
 
