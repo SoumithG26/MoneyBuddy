@@ -67,7 +67,7 @@ if not st.session_state.initialized:
         st.session_state.remaining_days = int(total_days)
         st.session_state.daily_allowance = total_budget / total_days
         st.session_state.initialized = True
-        st.experimental_rerun()
+        st.rerun()
 
 # -------------------------------
 # Main App (Child View)
@@ -114,7 +114,7 @@ else:
                 st.session_state.daily_allowance = 0
 
             st.success("Expense recorded!")
-            st.experimental_rerun()
+            st.rerun()
 
     st.divider()
 
@@ -173,4 +173,4 @@ else:
     # -------------------------------
     if st.button("🔄 Reset Budget"):
         st.session_state.clear()
-        st.experimental_rerun()
+        st.rerun()
