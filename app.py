@@ -29,24 +29,27 @@ def query_ai(prompt):
             headers=headers,
             json={
                 "model": "meta-llama/Llama-3.1-8B-Instruct",
-                "inputs": prompt,
+                "prompt": prompt,          # ✅ REQUIRED FIELD
                 "max_tokens": 300,
                 "temperature": 0.7,
+                "top_p": 0.9,
             },
             timeout=30
         )
 
         data = response.json()
 
-        if "choices" in data:
+        # ✅ Safe parsing
+        if "choices" in data and len(data["choices"]) > 0:
             return data["choices"][0]["text"].strip()
         elif "error" in data:
-            return f"⚠️ AI Error: {data['error']}"
+            return f"⚠️ AI Error: {data['error']['message']}"
         else:
-            return "⚠️ Unexpected AI response."
+            return "⚠️ Unexpected AI response format."
 
     except Exception as e:
         return f"⚠️ AI connection failed: {str(e)}"
+
 
 # ---------------------------------
 # Session State Initialization
