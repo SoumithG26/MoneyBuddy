@@ -59,7 +59,7 @@ There is a need for a simple, safe, and educational budgeting tool that helps ch
 |------|-----------|
 | Frontend | Streamlit |
 | Backend Logic | Python |
-| AI Model | Llama-3.1-8B-Instruct |
+| AI Model | Llama-3.1-8B |
 | AI Provider | Featherless AI (Hugging Face Router) |
 | Storage | Local JSON files |
 | Authentication | Username-only (Streamlit session) |
